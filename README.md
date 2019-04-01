@@ -1,3 +1,5 @@
+# Nasza gra
+
 ```bash
 mkdir build
 cmake ..
