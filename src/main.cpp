@@ -11,6 +11,7 @@
 #include <tuple>
 #include <vector>
 #include <cmath>
+#include <map>
 
 #define TILE_SIZE 32
 
@@ -81,7 +82,7 @@ void debug_print_map(game_map_t m)
 	}
 }
 
-void draw_map(SDL_Renderer *renderer, SDL_Texture *tex, const game_map_t &m)
+void draw_map(SDL_Renderer *renderer, std::map<char,SDL_Texture*> textures, const game_map_t &m)
 {
 
 	for (unsigned y = 0; y < m.h; y++)
@@ -89,34 +90,7 @@ void draw_map(SDL_Renderer *renderer, SDL_Texture *tex, const game_map_t &m)
 		for (unsigned x = 0; x < m.w; x++)
 		{
 			SDL_Rect rect = { x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE };
-
-			switch (m.tiles.at(y).at(x))
-			{
-			case '@':
-			case '.':
-				//SDL_RenderCopy(renderer, tex, NULL, &rect);
-				SDL_SetRenderDrawColor(renderer, 100, 60, 20, 255);
-				break;
-			case '#':
-				//SDL_RenderCopy(renderer, tex, NULL, &rect);
-				SDL_SetRenderDrawColor(renderer, 40, 40, 255, 255);
-				break;
-			case '*':
-				//SDL_RenderCopy(renderer, tex, NULL, &rect);
-				SDL_SetRenderDrawColor(renderer, 40, 40, 70, 255);
-				break;
-			case 'x':
-				//SDL_RenderCopy(renderer, tex, NULL, &rect);
-				SDL_SetRenderDrawColor(renderer, 255, 128, 128, 255);
-				break;
-			}
-			if (m.tiles.at(y).at(x) != '*')
-			{
-			SDL_RenderFillRect(renderer, &rect);
-			//SDL_SetRenderDrawColor(renderer, 0, 128, 0, 255);
-			SDL_Rect rectf = {(int)(x * TILE_SIZE), (int)(y * TILE_SIZE), TILE_SIZE, TILE_SIZE};
-			SDL_RenderDrawRect(renderer, &rectf);
-			}
+			SDL_RenderCopy(renderer, textures[m.tiles.at(y).at(x)], NULL, &rect);
 		}
 	}
 }
@@ -176,8 +150,13 @@ int main(int, char **)
 	errcheck(renderer == nullptr);
 	SDL_Surface *surface = SDL_LoadBMP("data/player.bmp");
 	SDL_Texture* player_texture = SDL_CreateTextureFromSurface(renderer, surface);
-	surface = SDL_LoadBMP("data/papryka.bmp");
-	SDL_Texture* papryka_texture = SDL_CreateTextureFromSurface(renderer, surface);
+	
+	map<char,SDL_Texture*> textures;
+	surface = SDL_LoadBMP("data/poziomdzungla/podloga.bmp");
+	textures['.'] = SDL_CreateTextureFromSurface(renderer, surface);
+	surface = SDL_LoadBMP("data/poziomdzungla/scianadol.bmp");
+	textures['#'] = SDL_CreateTextureFromSurface(renderer, surface);	
+	
 	SDL_FreeSurface(surface);
 	surface = NULL;
 
@@ -242,7 +221,7 @@ int main(int, char **)
 		SDL_SetRenderDrawColor(renderer, 10, 0, 0, 255);
 
 		SDL_RenderClear(renderer);
-		draw_map(renderer, papryka_texture, game_map);
+		draw_map(renderer, textures, game_map);
 		draw_player(renderer, player_texture, player);
 
 		SDL_RenderPresent(renderer); // draw frame to screen
