@@ -44,6 +44,7 @@ struct player_t
 {
 	double x, y;
 	player_dir_e dir;
+	bool stop, push;
 };
 
 game_map_t load_map(const std::string map_name)
@@ -95,40 +96,25 @@ void draw_map(SDL_Renderer *renderer, std::map<char,SDL_Texture*> textures, cons
 	}
 }
 
-void draw_player(SDL_Renderer *renderer, SDL_Texture *player_texture, const player_t &p)
+void draw_player(SDL_Renderer *renderer, SDL_Texture *player_texture, const player_t &p, int frame)
 {
 	//SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-	SDL_Rect rect = { (int)(p.x * TILE_SIZE + 1),
-		(int)(p.y * TILE_SIZE + 1),
-		TILE_SIZE - 2,
-		TILE_SIZE - 2 };
+	SDL_Rect rectr = { TILE_SIZE*((frame/30)%2),
+		0,
+		TILE_SIZE,
+		TILE_SIZE};
+	rectr.y = TILE_SIZE*p.dir;	
+	if (!p.stop) rectr.x += TILE_SIZE;
+	if (!p.stop) rectr.x += 2*TILE_SIZE;
+	
+	SDL_Rect rect = { (int)(p.x * TILE_SIZE),
+		(int)(p.y * TILE_SIZE),
+		TILE_SIZE,
+		TILE_SIZE };
 	/*SDL_RenderFillRect(renderer, &rect);*/
-	SDL_RenderCopy(renderer, player_texture, NULL, &rect);
+	SDL_RenderCopy(renderer, player_texture, &rectr, &rect);
 
 	SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-	switch (p.dir)
-	{
-	case LEFT:
-		SDL_RenderDrawLine(renderer, (p.x + 0.5) * TILE_SIZE,
-			(p.y + 0.25) * TILE_SIZE, (p.x + 0.5 - 2) * TILE_SIZE,
-			(p.y + 0.25) * TILE_SIZE);
-		break;
-	case RIGHT:
-		SDL_RenderDrawLine(renderer, (p.x + 0.5) * TILE_SIZE,
-			(p.y + 0.25) * TILE_SIZE, (p.x + 0.5 + 2) * TILE_SIZE,
-			(p.y + 0.25) * TILE_SIZE);
-		break;
-	case UP:
-		SDL_RenderDrawLine(renderer, (p.x + 0.5) * TILE_SIZE,
-			(p.y + 0.25) * TILE_SIZE, (p.x + 0.5) * TILE_SIZE,
-			(p.y + 0.25 - 2) * TILE_SIZE);
-		break;
-	case DOWN:
-		SDL_RenderDrawLine(renderer, (p.x + 0.5) * TILE_SIZE,
-			(p.y + 0.25) * TILE_SIZE, (p.x + 0.5) * TILE_SIZE,
-			(p.y + 0.25 + 2) * TILE_SIZE);
-		break;
-	}
 }
 
 int main(int, char **)
@@ -148,7 +134,8 @@ int main(int, char **)
 	SDL_Renderer *renderer = SDL_CreateRenderer(
 		window, -1, SDL_RENDERER_ACCELERATED); // SDL_RENDERER_PRESENTVSYNC
 	errcheck(renderer == nullptr);
-	SDL_Surface *surface = SDL_LoadBMP("data/player.bmp");
+	SDL_Surface *surface = SDL_LoadBMP("data/playerStand.bmp");
+	SDL_SetColorKey(surface,SDL_TRUE,SDL_MapRGB(surface->format,0,0xFF,0xFF));
 	SDL_Texture* player_texture = SDL_CreateTextureFromSurface(renderer, surface);
 	
 	map<char,SDL_Texture*> textures;
@@ -171,6 +158,7 @@ int main(int, char **)
 
 	steady_clock::time_point current_time =
 		steady_clock::now(); // remember current time
+	int frame = 0;
 	for (bool game_active = true; game_active;)
 	{
 		SDL_Event event;
@@ -182,6 +170,7 @@ int main(int, char **)
 
 		const Uint8 *state = SDL_GetKeyboardState(NULL);
 		auto new_player_pos = player;
+		new_player_pos.stop = false;
 		if (state[SDL_SCANCODE_LEFT])
 		{
 			new_player_pos.x -= 0.1;
@@ -202,6 +191,7 @@ int main(int, char **)
 			new_player_pos.y += 0.1;
 			new_player_pos.dir = DOWN;
 		}
+		else new_player_pos.stop = true;
 		
 
 		//if (new_player_pos.x + 0.5 > 0 && new_player_pos.x + 0.5 < game_map.tiles.at(0).size() 
@@ -212,18 +202,19 @@ int main(int, char **)
 			&& game_map.tiles.at(new_player_pos.y+1).at(new_player_pos.x+1) != '#'
 			&& game_map.tiles.at(new_player_pos.y).at(new_player_pos.x+1) != '#')
 			{
-				//if (new_player_pos.x > 0 && new_player_pos.x + TILE_SIZE < game_map.tiles.at(0).size()
-					//&& new_player_pos.y > 0 && new_player_pos.y + TILE_SIZE < game_map.tiles.size()) 
-				player = new_player_pos;
-				player = new_player_pos;
-				
+				if (new_player_pos.x > 0 && new_player_pos.x + 1 < game_map.tiles.at(0).size()
+					&& new_player_pos.y > 0 && new_player_pos.y + 1 < game_map.tiles.size()) 
+				{
+					player = new_player_pos;
+					player = new_player_pos;
+				}				
 			}
 		SDL_SetRenderDrawColor(renderer, 10, 0, 0, 255);
 
 		SDL_RenderClear(renderer);
 		draw_map(renderer, textures, game_map);
-		draw_player(renderer, player_texture, player);
-
+		draw_player(renderer, player_texture, player,frame);
+		frame++;
 		SDL_RenderPresent(renderer); // draw frame to screen
 
 		this_thread::sleep_until(current_time = current_time + dt);
