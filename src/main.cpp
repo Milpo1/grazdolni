@@ -134,7 +134,7 @@ int main(int, char **)
 	SDL_Renderer *renderer = SDL_CreateRenderer(
 		window, -1, SDL_RENDERER_ACCELERATED); // SDL_RENDERER_PRESENTVSYNC
 	errcheck(renderer == nullptr);
-	SDL_Surface *surface = SDL_LoadBMP("data/playerStand.bmp");
+	SDL_Surface *surface = SDL_LoadBMP("data/player.bmp");
 	SDL_SetColorKey(surface,SDL_TRUE,SDL_MapRGB(surface->format,0,0xFF,0xFF));
 	SDL_Texture* player_texture = SDL_CreateTextureFromSurface(renderer, surface);
 	
