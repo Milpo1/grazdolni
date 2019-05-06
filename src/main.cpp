@@ -42,7 +42,7 @@ enum player_dir_e
 };
 struct player_t
 {
-	double x, y;
+	double x, y, xt, yt;
 	player_dir_e dir;
 	bool stop, push;
 };
@@ -122,18 +122,21 @@ int main(int, char **)
 	using namespace std;
 	using namespace std::chrono;
 	const int width = 640;
-	const int height = 480;
-
+	const int height = 400;
+	const int scale = 2;
 	errcheck(SDL_Init(SDL_INIT_VIDEO) != 0);
 
 	SDL_Window *window = SDL_CreateWindow(
 		"My Next Superawesome Game", SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
+		SDL_WINDOWPOS_UNDEFINED, width*scale, height*scale, SDL_WINDOW_SHOWN);
 	errcheck(window == nullptr);
 
 	SDL_Renderer *renderer = SDL_CreateRenderer(
 		window, -1, SDL_RENDERER_ACCELERATED); // SDL_RENDERER_PRESENTVSYNC
 	errcheck(renderer == nullptr);
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 0);
+	SDL_RenderSetLogicalSize(renderer, width, height);
+	
 	SDL_Surface *surface = SDL_LoadBMP("data/player.bmp");
 	SDL_SetColorKey(surface,SDL_TRUE,SDL_MapRGB(surface->format,0,0xFF,0xFF));
 	SDL_Texture* player_texture = SDL_CreateTextureFromSurface(renderer, surface);
@@ -154,6 +157,8 @@ int main(int, char **)
 	player_t player;
 	player.x = game_map.start_x;
 	player.y = game_map.start_y;
+	player.xt = player.x;
+	player.yt = player.y;
 	debug_print_map(game_map);
 
 	steady_clock::time_point current_time =
@@ -171,44 +176,93 @@ int main(int, char **)
 		const Uint8 *state = SDL_GetKeyboardState(NULL);
 		auto new_player_pos = player;
 		new_player_pos.stop = false;
-		if (state[SDL_SCANCODE_LEFT])
+		/*if (new_player_pos.x > (double)new_player_pos.xt)
 		{
 			new_player_pos.x -= 0.1;
-			new_player_pos.dir = LEFT;
+			//new_player_pos.dir = LEFT;
 		}
-		if (state[SDL_SCANCODE_RIGHT])
+		else if (new_player_pos.x < (double)new_player_pos.xt)
 		{
 			new_player_pos.x += 0.1;
-			new_player_pos.dir = RIGHT;
+			//new_player_pos.dir = RIGHT;
 		}
-		if (state[SDL_SCANCODE_UP])
+		else if (new_player_pos.y > (double)new_player_pos.yt)
 		{
-			new_player_pos.y -=0.1;
-			new_player_pos.dir = UP;
+			new_player_pos.y -= 0.1;
+			//new_player_pos.dir = UP;
 		}
-		if (state[SDL_SCANCODE_DOWN])
+		else if (new_player_pos.y < (double)new_player_pos.yt)
 		{
 			new_player_pos.y += 0.1;
-			new_player_pos.dir = DOWN;
+			//new_player_pos.dir = DOWN;
+		}*/
+		new_player_pos.x += (player.xt - player.x)*0.1;
+		new_player_pos.y += (player.yt - player.y)*0.1;
+		if ((abs(new_player_pos.x - new_player_pos.xt) < 0.5)  && (abs(new_player_pos.y - new_player_pos.yt) < 0.5))
+		{
+			if (state[SDL_SCANCODE_LEFT]) 
+			{
+				new_player_pos.xt -= 1;
+				new_player_pos.dir = LEFT;
+			}
+			else if (state[SDL_SCANCODE_RIGHT])
+			{
+				new_player_pos.xt += 1;
+				new_player_pos.dir = RIGHT;
+			}
+			else if (state[SDL_SCANCODE_UP])
+			{
+				new_player_pos.yt -= 1;
+				new_player_pos.dir = UP;
+			}
+			else if (state[SDL_SCANCODE_DOWN])
+			{
+				new_player_pos.yt += 1;
+				new_player_pos.dir = DOWN;
+			}
+			else new_player_pos.stop = true;			
 		}
-		else new_player_pos.stop = true;
-		
+		/*else
+		{
+			if (new_player_pos.x > new_player_pos.xt)
+			{
+				new_player_pos.x -= 0.1;
+				//new_player_pos.dir = LEFT;
+			}
+			else if (new_player_pos.x < new_player_pos.xt)
+			{
+				new_player_pos.x += 0.1;
+				//new_player_pos.dir = RIGHT;
+			}
+			else if (new_player_pos.y > new_player_pos.yt)
+			{
+				new_player_pos.y -= 0.1;
+				//new_player_pos.dir = UP;
+			}
+			else if (new_player_pos.y < new_player_pos.yt)
+			{
+				new_player_pos.y += 0.1;
+				//new_player_pos.dir = DOWN;
+			}
+		}*/
 
 		//if (new_player_pos.x + 0.5 > 0 && new_player_pos.x + 0.5 < game_map.tiles.at(0).size() 
 		//	&& new_player_pos.y + 0.5 > 0 && new_player_pos.y + 0.5 < game_map.tiles.size())
 
-			if (game_map.tiles.at(new_player_pos.y).at(new_player_pos.x) != '#'
+			/*if (game_map.tiles.at(new_player_pos.y).at(new_player_pos.x) != '#'
 			&& game_map.tiles.at(new_player_pos.y+1).at(new_player_pos.x) != '#'
 			&& game_map.tiles.at(new_player_pos.y+1).at(new_player_pos.x+1) != '#'
 			&& game_map.tiles.at(new_player_pos.y).at(new_player_pos.x+1) != '#')
-			{
-				if (new_player_pos.x > 0 && new_player_pos.x + 1 < game_map.tiles.at(0).size()
-					&& new_player_pos.y > 0 && new_player_pos.y + 1 < game_map.tiles.size()) 
+			{*/
+				if (new_player_pos.xt > 0 && new_player_pos.xt + 1 < game_map.tiles.at(0).size()
+					&& new_player_pos.yt > 0 && new_player_pos.yt + 1 < game_map.tiles.size()) 
 				{
 					player = new_player_pos;
 					player = new_player_pos;
+					cout << player.x << " " << player.y << endl;
+					cout << player.xt << " " << player.yt << endl;
 				}				
-			}
+			//}
 		SDL_SetRenderDrawColor(renderer, 10, 0, 0, 255);
 
 		SDL_RenderClear(renderer);
