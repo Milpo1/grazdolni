@@ -176,26 +176,7 @@ int main(int, char **)
 		const Uint8 *state = SDL_GetKeyboardState(NULL);
 		auto new_player_pos = player;
 		new_player_pos.stop = false;
-		/*if (new_player_pos.x > (double)new_player_pos.xt)
-		{
-			new_player_pos.x -= 0.1;
-			//new_player_pos.dir = LEFT;
-		}
-		else if (new_player_pos.x < (double)new_player_pos.xt)
-		{
-			new_player_pos.x += 0.1;
-			//new_player_pos.dir = RIGHT;
-		}
-		else if (new_player_pos.y > (double)new_player_pos.yt)
-		{
-			new_player_pos.y -= 0.1;
-			//new_player_pos.dir = UP;
-		}
-		else if (new_player_pos.y < (double)new_player_pos.yt)
-		{
-			new_player_pos.y += 0.1;
-			//new_player_pos.dir = DOWN;
-		}*/
+
 		new_player_pos.x += (player.xt - player.x)*0.1;
 		new_player_pos.y += (player.yt - player.y)*0.1;
 		if ((abs(new_player_pos.x - new_player_pos.xt) < 0.5)  && (abs(new_player_pos.y - new_player_pos.yt) < 0.5))
@@ -222,29 +203,7 @@ int main(int, char **)
 			}
 			else new_player_pos.stop = true;			
 		}
-		/*else
-		{
-			if (new_player_pos.x > new_player_pos.xt)
-			{
-				new_player_pos.x -= 0.1;
-				//new_player_pos.dir = LEFT;
-			}
-			else if (new_player_pos.x < new_player_pos.xt)
-			{
-				new_player_pos.x += 0.1;
-				//new_player_pos.dir = RIGHT;
-			}
-			else if (new_player_pos.y > new_player_pos.yt)
-			{
-				new_player_pos.y -= 0.1;
-				//new_player_pos.dir = UP;
-			}
-			else if (new_player_pos.y < new_player_pos.yt)
-			{
-				new_player_pos.y += 0.1;
-				//new_player_pos.dir = DOWN;
-			}
-		}*/
+
 
 		//if (new_player_pos.x + 0.5 > 0 && new_player_pos.x + 0.5 < game_map.tiles.at(0).size() 
 		//	&& new_player_pos.y + 0.5 > 0 && new_player_pos.y + 0.5 < game_map.tiles.size())
@@ -259,8 +218,6 @@ int main(int, char **)
 				{
 					player = new_player_pos;
 					player = new_player_pos;
-					cout << player.x << " " << player.y << endl;
-					cout << player.xt << " " << player.yt << endl;
 				}				
 			//}
 		SDL_SetRenderDrawColor(renderer, 10, 0, 0, 255);
