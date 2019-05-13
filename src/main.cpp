@@ -46,8 +46,14 @@ struct player_t
 	player_dir_e dir;
 	bool stop, push;
 };
+struct brick_t
+{
+	double x, y, xt, yt;
+	player_dir_e dir;
+	bool stop, push;
+};
 
-game_map_t load_map(const std::string map_name)
+game_map_t load_map(const std::string map_name, std::vector<brick_t> &bricks)
 {
 	using namespace std;
 	fstream f(map_name, ios_base::in);
@@ -64,6 +70,15 @@ game_map_t load_map(const std::string map_name)
 			{
 				ret_map.start_x = x;
 				ret_map.start_y = i;
+			}
+			if (line.at(x) == '*')
+			{
+				brick_t brick;
+				brick.xt = x;
+				brick.yt = i;
+				brick.x = brick.xt;
+				brick.y = brick.yt;
+				bricks.push_back(brick);
 			}
 		}
 	}
@@ -90,8 +105,11 @@ void draw_map(SDL_Renderer *renderer, std::map<char,SDL_Texture*> textures, cons
 	{
 		for (unsigned x = 0; x < m.w; x++)
 		{
+			
 			SDL_Rect rect = { x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE };
+			if ((m.tiles.at(y).at(x)) != '*')
 			SDL_RenderCopy(renderer, textures[m.tiles.at(y).at(x)], NULL, &rect);
+			else SDL_RenderCopy(renderer, textures['.'], NULL, &rect);
 		}
 	}
 }
@@ -115,6 +133,24 @@ void draw_player(SDL_Renderer *renderer, SDL_Texture *player_texture, const play
 	SDL_RenderCopy(renderer, player_texture, &rectr, &rect);
 
 	SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+}
+void draw_bricks(SDL_Renderer *renderer, SDL_Texture *brick_texture, std::vector<brick_t> &bricks)
+{
+	SDL_Rect rectr = { 0,
+		0,
+		TILE_SIZE,
+		TILE_SIZE};	
+	for (unsigned int i = 0; i < bricks.size(); i++)
+	{
+		SDL_Rect rect = { (int)(bricks[i].x * TILE_SIZE),
+			(int)(bricks[i].y * TILE_SIZE),
+			TILE_SIZE,
+			TILE_SIZE };
+
+		SDL_RenderCopy(renderer, brick_texture, &rectr, &rect);
+
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+	}
 }
 
 int main(int, char **)
@@ -146,6 +182,8 @@ int main(int, char **)
 	textures['.'] = SDL_CreateTextureFromSurface(renderer, surface);
 	surface = SDL_LoadBMP("data/poziomdzungla/scianadol.bmp");
 	textures['#'] = SDL_CreateTextureFromSurface(renderer, surface);	
+	surface = SDL_LoadBMP("data/papryka.bmp");
+	textures['*'] = SDL_CreateTextureFromSurface(renderer, surface);	
 	
 	SDL_FreeSurface(surface);
 	surface = NULL;
@@ -153,7 +191,8 @@ int main(int, char **)
 	// auto dt = 15ms;
 	milliseconds dt(15);
 
-	auto game_map = load_map("data/level0");
+	vector<brick_t> bricks;
+	auto game_map = load_map("data/level0",bricks);
 	player_t player;
 	player.x = game_map.start_x;
 	player.y = game_map.start_y;
@@ -213,17 +252,37 @@ int main(int, char **)
 			&& game_map.tiles.at(new_player_pos.y+1).at(new_player_pos.x+1) != '#'
 			&& game_map.tiles.at(new_player_pos.y).at(new_player_pos.x+1) != '#')
 			{*/
-				if (new_player_pos.xt > 0 && new_player_pos.xt + 1 < game_map.tiles.at(0).size()
-					&& new_player_pos.yt > 0 && new_player_pos.yt + 1 < game_map.tiles.size()) 
-				{
-					player = new_player_pos;
-					player = new_player_pos;
-				}				
-			//}
+		bool spoko = true;
+		for (unsigned int i = 0; i < bricks.size(); i++)
+		{
+			if (new_player_pos.xt == bricks[i].xt && new_player_pos.yt == bricks[i].yt)
+			{
+				spoko = false;
+				if (new_player_pos.dir == DOWN) bricks[i].yt++;
+				if (new_player_pos.dir == UP) bricks[i].yt--;
+				if (new_player_pos.dir == RIGHT) bricks[i].xt++;
+				if (new_player_pos.dir == LEFT) bricks[i].xt--;
+				if (new_player_pos.dir == DOWN) bricks[i].y++;
+				if (new_player_pos.dir == UP) bricks[i].y--;
+				if (new_player_pos.dir == RIGHT) bricks[i].x++;
+				if (new_player_pos.dir == LEFT) bricks[i].x--;
+				cout << bricks[i].xt << " " << bricks[i].yt << endl;
+			}
+		}
+		if (spoko)
+		{
+			if (new_player_pos.xt > 0 && new_player_pos.xt + 1 < game_map.tiles.at(0).size()
+				&& new_player_pos.yt > 0 && new_player_pos.yt + 1 < game_map.tiles.size()) 
+			{
+				player = new_player_pos;
+				player = new_player_pos;
+			}				
+		}
 		SDL_SetRenderDrawColor(renderer, 10, 0, 0, 255);
 
 		SDL_RenderClear(renderer);
 		draw_map(renderer, textures, game_map);
+		draw_bricks(renderer, textures['*'], bricks);
 		draw_player(renderer, player_texture, player,frame);
 		frame++;
 		SDL_RenderPresent(renderer); // draw frame to screen
