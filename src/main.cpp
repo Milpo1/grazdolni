@@ -96,6 +96,17 @@ void draw_map(SDL_Renderer *renderer, std::map<char,SDL_Texture*> textures, cons
 	}
 }
 
+void draw_background(SDL_Renderer *renderer, SDL_Texture* texture)
+{	
+	SDL_Rect rect = { (int)(0),
+		(int)(0),
+		(int)(640),
+		(int)(420)
+		 };
+	/*SDL_RenderFillRect(renderer, &rect);*/
+	SDL_RenderCopy(renderer, texture, nullptr, &rect);
+	}
+
 void draw_player(SDL_Renderer *renderer, SDL_Texture *player_texture, const player_t &p, int frame)
 {
 	//SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -140,16 +151,28 @@ int main(int, char **)
 	SDL_Surface *surface = SDL_LoadBMP("data/player.bmp");
 	SDL_SetColorKey(surface,SDL_TRUE,SDL_MapRGB(surface->format,0,0xFF,0xFF));
 	SDL_Texture* player_texture = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_FreeSurface(surface);
 	
 	map<char,SDL_Texture*> textures;
 	surface = SDL_LoadBMP("data/poziomdzungla/podloga.bmp");
 	textures['.'] = SDL_CreateTextureFromSurface(renderer, surface);
-	surface = SDL_LoadBMP("data/poziomdzungla/scianadol.bmp");
-	textures['#'] = SDL_CreateTextureFromSurface(renderer, surface);	
-	
 	SDL_FreeSurface(surface);
+	surface = SDL_LoadBMP("data/poziomdzungla/scianadol.bmp");
+	textures['#'] = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_FreeSurface(surface);
+		
+	surface = SDL_LoadBMP("data/poziomdzungla/tlo.bmp");
+	SDL_Texture* background_texture = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_FreeSurface(surface);
+	
+	//surface = SDL_LoadBMP("data/poziomdzungla/tlo2.bmp");
+	//SDL_SetColorKey(surface,SDL_TRUE,SDL_MapRGB(surface->format,0,0xFF,0xFF));
+	//SDL_Texture* background_texture = SDL_CreateTextureFromSurface(renderer, surface);
+	//SDL_FreeSurface(surface);
 	surface = NULL;
-
+	
+	surface = SDL_LoadBMP("data/poziomdzungla/podloga.bmp");
+	textures['.'] = SDL_CreateTextureFromSurface(renderer, surface);
 	// auto dt = 15ms;
 	milliseconds dt(15);
 
@@ -223,6 +246,7 @@ int main(int, char **)
 		SDL_SetRenderDrawColor(renderer, 10, 0, 0, 255);
 
 		SDL_RenderClear(renderer);
+		draw_background(renderer, background_texture);
 		draw_map(renderer, textures, game_map);
 		draw_player(renderer, player_texture, player,frame);
 		frame++;
