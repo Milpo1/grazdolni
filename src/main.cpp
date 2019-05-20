@@ -114,16 +114,34 @@ void draw_map(SDL_Renderer *renderer, std::map<char,SDL_Texture*> textures, cons
 	}
 }
 
-void draw_background(SDL_Renderer *renderer, SDL_Texture* texture)
+void draw_background(SDL_Renderer *renderer, SDL_Texture* texture, SDL_Texture* texture2, player_t player, int frame)
 {	
 	SDL_Rect rect = { (int)(0),
 		(int)(0),
 		(int)(640),
 		(int)(420)
 		 };
-	/*SDL_RenderFillRect(renderer, &rect);*/
+		 
+		
+	
+	
+	/*SDL_RenderFillRect(renderer, &rect);*/	
 	SDL_RenderCopy(renderer, texture, nullptr, &rect);
-	}
+	
+	
+	
+	
+	
+	for (int  p=-1; p<2; p++)
+	for (int  r=-1; r<2; r++)
+		{SDL_Rect rect2 = { (int)(player.x *4 + p  *640),
+			(int)(player.y *4 +r*420),
+			(int)(640),
+			(int)(420)
+		 }; 
+		SDL_RenderCopy(renderer, texture2, nullptr, &rect2);
+	};
+}
 
 void draw_player(SDL_Renderer *renderer, SDL_Texture *player_texture, const player_t &p, int frame)
 {
@@ -204,10 +222,10 @@ int main(int, char **)
 	SDL_Texture* background_texture = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_FreeSurface(surface);
 	
-	//surface = SDL_LoadBMP("data/poziomdzungla/tlo2.bmp");
-	//SDL_SetColorKey(surface,SDL_TRUE,SDL_MapRGB(surface->format,0,0xFF,0xFF));
-	//SDL_Texture* background_texture = SDL_CreateTextureFromSurface(renderer, surface);
-	//SDL_FreeSurface(surface);
+	surface = SDL_LoadBMP("data/poziomdzungla/tuo2.bmp");
+	SDL_SetColorKey(surface,SDL_TRUE,SDL_MapRGB(surface->format,0,0xFF,0xFF));
+	SDL_Texture* background_texture2 = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_FreeSurface(surface);
 	surface = NULL;
 	
 	surface = SDL_LoadBMP("data/poziomdzungla/podloga.bmp");
@@ -305,7 +323,7 @@ int main(int, char **)
 		SDL_SetRenderDrawColor(renderer, 10, 0, 0, 255);
 
 		SDL_RenderClear(renderer);
-		draw_background(renderer, background_texture);
+		draw_background(renderer, background_texture, background_texture2, player, frame);
 		draw_map(renderer, textures, game_map);
 		draw_bricks(renderer, textures['*'], bricks);
 		draw_player(renderer, player_texture, player,frame);
