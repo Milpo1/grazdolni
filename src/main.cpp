@@ -1,3 +1,5 @@
+#include <winbase.h>
+
 #include <SDL2/SDL.h>
 #include <chrono>
 #include <cstdint>
@@ -329,8 +331,7 @@ int main(int, char **)
 		draw_player(renderer, player_texture, player,frame);
 		frame++;
 		SDL_RenderPresent(renderer); // draw frame to screen
-
-		this_thread::sleep_until(current_time = current_time + dt);
+		//std::this_thread::sleep_until(current_time = current_time + dt);
 	}
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
@@ -340,3 +341,13 @@ int main(int, char **)
 	SDL_Quit();
 	return 0;
 }
+
+
+int  WinMain(
+  HINSTANCE hInstance,
+  HINSTANCE hPrevInstance,
+  LPSTR     lpCmdLine,
+  int       nShowCmd
+  ) {
+	main(0,nullptr);
+  }
